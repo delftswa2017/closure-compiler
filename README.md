@@ -98,7 +98,7 @@ More detailed information about running the Closure Compiler is available in the
 
 1. Open the class `src/com/google/javascript/jscomp/CommandLineRunner.java` or create your own extended version of the class.
 2. Run the class in Eclipse.
-3. See the instructions above on how to use the interactive mode - but beware of the [bug](http://stackoverflow.com/questions/4711098/passing-end-of-transmission-ctrl-d-character-in-eclipse-cdt-console) regarding passing "End of Transmission" in Eclipse console.
+3. See the instructions above on how to use the interactive mode - but beware of the [bug](http://stackoverflow.com/questions/4711098/passing-end-of-transmission-ctrl-d-character-in-eclipse-cdt-console) regarding passing "End of Transmission" in the Eclipse console.
 
 
 ## Compiling Multiple Scripts

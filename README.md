@@ -13,9 +13,9 @@ The [Closure Compiler](https://developers.google.com/closure/compiler/) is a too
  * See the [Google Developers Site](https://developers.google.com/closure/compiler/docs/gettingstarted_app) for documentation including instructions for running the compiler from the command line.
 
 ## Options for Getting Help
-1. Post in the [Closure Compiler Discuss Group](https://groups.google.com/forum/#!forum/closure-compiler-discuss)
-2. Ask a question on [Stack Overflow](http://stackoverflow.com/questions/tagged/google-closure-compiler)
-3. Consult the [FAQ](https://github.com/google/closure-compiler/wiki/FAQ)
+1. Post in the [Closure Compiler Discuss Group](https://groups.google.com/forum/#!forum/closure-compiler-discuss).
+2. Ask a question on [Stack Overflow](http://stackoverflow.com/questions/tagged/google-closure-compiler).
+3. Consult the [FAQ](https://github.com/google/closure-compiler/wiki/FAQ).
 
 ## Building it Yourself
 

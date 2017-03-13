@@ -1226,82 +1226,93 @@ public final class CheckAccessControlsTest extends TypeICompilerTestCase {
   }
 
   public void testFileoverviewVisibilityDoesNotApplyToGoogProvidedNamespace1() {
-    // Don't compare the generated JsDoc. It includes annotations we're not interested in,
-    // like @inherited.
-    compareJsDoc = false;
-
     test(
         ImmutableList.of(
             SourceFile.fromCode("foo.js", "goog.provide('foo');"),
             SourceFile.fromCode(
                 Compiler.joinPathParts("foo", "bar.js"),
-                "/**\n"
-                + "  * @fileoverview\n"
-                + "  * @package\n"
-                + "  */\n"
-                + "goog.provide('foo.bar');"),
+                LINE_JOINER.join(
+                "/**\n",
+                "  * @fileoverview\n",
+                "  * @package\n",
+                "  */\n",
+                "goog.provide('foo.bar');")),
             SourceFile.fromCode("bar.js", "goog.require('foo')")),
-        ImmutableList.of(SourceFile.fromCode("foo.js", "var foo={};"),
-            SourceFile.fromCode(Compiler.joinPathParts("foo", "bar.js"), "foo.bar={};"),
+        ImmutableList.of(
+        	SourceFile.fromCode("foo.js", "/** @const */ var foo={};"),
+            SourceFile.fromCode(
+            	Compiler.joinPathParts("foo", "bar.js"),
+            	LINE_JOINER.join(
+                "/**\n",
+                "  * @fileoverview\n",
+                "  * @package\n",
+                "  */\n",
+            	"/** @const */ foo.bar={};")),
             SourceFile.fromCode("bar.js", "")),
         null, null);
-
-    compareJsDoc = true;
   }
 
   public void testFileoverviewVisibilityDoesNotApplyToGoogProvidedNamespace2() {
-    // Don't compare the generated JsDoc. It includes annotations we're not interested in,
-    // like @inherited.
-    compareJsDoc = false;
-
     test(
         ImmutableList.of(
             SourceFile.fromCode(
                 Compiler.joinPathParts("foo", "bar.js"),
-                "/**\n"
-                + "  * @fileoverview\n"
-                + "  * @package\n"
-                + "  */\n"
-                + "goog.provide('foo.bar');"),
+                LINE_JOINER.join(
+                "/**\n",
+                "  * @fileoverview\n",
+                "  * @package\n",
+                "  */\n",
+                "goog.provide('foo.bar');")),
             SourceFile.fromCode("foo.js", "goog.provide('foo');"),
             SourceFile.fromCode(
                 "bar.js",
                 "goog.require('foo');\n"
-                + "var x = foo;")),
-        ImmutableList.of(SourceFile.fromCode(Compiler.joinPathParts("foo", "bar.js"),
-                "var foo={};foo.bar={};"),
-            SourceFile.fromCode("foo.js", ""), SourceFile.fromCode("bar.js", "var x=foo")),
+                + "/** @const */ var x = foo;")),
+        ImmutableList.of(
+        	SourceFile.fromCode(
+        		Compiler.joinPathParts("foo", "bar.js"),
+        		LINE_JOINER.join(
+        		"/** @const */ var foo={};",
+                "/**\n",
+                "  * @fileoverview\n",
+                "  * @package\n",
+                "  */\n",
+        		"/** @const */ foo.bar={};")),
+            SourceFile.fromCode("foo.js", ""),
+            SourceFile.fromCode("bar.js", "/** @const */ var x=foo")),
         null, null);
-
-    compareJsDoc = true;
   }
 
   public void testFileoverviewVisibilityDoesNotApplyToGoogProvidedNamespace3() {
-    // Don't compare the generated JsDoc. It includes annotations we're not interested in,
-    // like @inherited.
-    compareJsDoc = false;
-
     test(
         ImmutableList.of(
             SourceFile.fromCode(
                 Compiler.joinPathParts("foo", "bar.js"),
-                "/**\n"
-                + " * @fileoverview\n"
-                + " * @package\n"
-                + " */\n"
-                + "goog.provide('one.two');\n"
-                + "one.two.three = function(){};"),
+                LINE_JOINER.join(
+                "/**\n",
+                " * @fileoverview\n",
+                " * @package\n",
+                " */\n",
+                "goog.provide('one.two');\n",
+                "one.two.three = function(){};")),
             SourceFile.fromCode(
                 "baz.js",
-                "goog.require('one.two');\n"
-                + "var x = one.two;")),
+                LINE_JOINER.join(
+                "goog.require('one.two');\n",
+                "var x = one.two;"))),
         ImmutableList.of(
-            SourceFile.fromCode(Compiler.joinPathParts("foo", "bar.js"),
-                "var one={};one.two={};one.two.three=function(){};"),
+            SourceFile.fromCode(
+            	Compiler.joinPathParts("foo", "bar.js"),
+                LINE_JOINER.join(
+                "/** @const */ var one={};",
+                "/**\n",
+                " * @fileoverview\n",
+                " * @package\n",
+                " */\n",
+                "/** @const */ one.two={};",
+                "one.two.three=function(){};")),
             SourceFile.fromCode("baz.js", "var x=one.two")),
         null, null);
-
-    compareJsDoc = true;
   }
 
   public void testFileoverviewVisibilityDoesNotApplyToGoogProvidedNamespace4() {

@@ -1266,20 +1266,21 @@ public final class CheckAccessControlsTest extends TypeICompilerTestCase {
             SourceFile.fromCode("foo.js", "goog.provide('foo');"),
             SourceFile.fromCode(
                 "bar.js",
-                "goog.require('foo');\n"
-                + "/** @const */ var x = foo;")),
+                LINE_JOINER.join(
+                "goog.require('foo');\n",
+                "var x = foo;"))),
         ImmutableList.of(
         	SourceFile.fromCode(
         		Compiler.joinPathParts("foo", "bar.js"),
         		LINE_JOINER.join(
-        		"/** @const */ var foo={};",
+                "/** @const */var foo={};",
                 "/**\n",
                 "  * @fileoverview\n",
                 "  * @package\n",
                 "  */\n",
-        		"/** @const */ foo.bar={};")),
+        		"/** @const */foo.bar={};")),
             SourceFile.fromCode("foo.js", ""),
-            SourceFile.fromCode("bar.js", "/** @const */ var x=foo")),
+            SourceFile.fromCode("bar.js", "var x=foo")),
         null, null);
   }
 

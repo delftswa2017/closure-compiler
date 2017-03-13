@@ -858,12 +858,12 @@ public final class InlineVariablesTest extends CompilerTestCase {
     inlineLocalsOnly = true;
     test(
     	LINE_JOINER.join(
-    		"/** @const */\n",
-    		"var X=1; X;\n",
-    		"function f() {\n",
-    		"  /** @const */\n",
-    		"  var X = 1; X;\n",
-    		"}"),
+		"/** @const */\n",
+		"var X=1; X;\n",
+		"function f() {\n",
+		"  /** @const */\n",
+		"  var X = 1; X;\n",
+		"}"),
         "/** @const */var X=1; X; function f() {1;}");
   }
 
@@ -1162,15 +1162,16 @@ public final class InlineVariablesTest extends CompilerTestCase {
 
   // GitHub issue #1234: https://github.com/google/closure-compiler/issues/1234
   public void testSwitchGithubIssue1234() {
-    testSame(LINE_JOINER.join(
-      "var x;",
-      "switch ('a') {",
-      "  case 'a':",
-      "    break;",
-      "  default:",
-      "    x = 1;",
-      "    break;",
-      "}",
-      "use(x);"));
+    testSame(
+    	LINE_JOINER.join(
+		"var x;",
+		"switch ('a') {",
+		"  case 'a':",
+		"    break;",
+		"  default:",
+		"    x = 1;",
+		"    break;",
+		"}",
+		"use(x);"));
   }
 }

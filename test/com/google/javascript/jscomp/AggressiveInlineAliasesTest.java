@@ -46,7 +46,8 @@ public class AggressiveInlineAliasesTest extends CompilerTestCase {
   }
 
   public void test_b19179602() {
-    test(LINE_JOINER.join(
+    test(
+    	LINE_JOINER.join(
         "var a = {};",
         "/** @constructor */ a.b = function() {};",
         "a.b.staticProp = 5;",
@@ -136,21 +137,21 @@ public class AggressiveInlineAliasesTest extends CompilerTestCase {
   public void testAddPropertyToChildTypeOfUncollapsibleObjectInLocalScope() {
     test(
         LINE_JOINER.join(
-            "var a = {};",
-            "a.b = function () {};",
-            "a.b.x = 0;",
-            "var c = a;",
-            "(function() { a.b.y = 1; })();",
-            "a.b.x;",
-            "a.b.y;"),
+        "var a = {};",
+        "a.b = function () {};",
+        "a.b.x = 0;",
+        "var c = a;",
+        "(function() { a.b.y = 1; })();",
+        "a.b.x;",
+        "a.b.y;"),
         LINE_JOINER.join(
-            "var a = {};",
-            "a.b = function() {};",
-            "a.b.x = 0;",
-            "var c = null;",
-            "(function() { a.b.y = 1; })();",
-            "a.b.x;",
-            "a.b.y;"));
+        "var a = {};",
+        "a.b = function() {};",
+        "a.b.x = 0;",
+        "var c = null;",
+        "(function() { a.b.y = 1; })();",
+        "a.b.x;",
+        "a.b.y;"));
   }
 
   public void testAddPropertyToUncollapsibleCtorInLocalScopeDepth1() {
@@ -289,7 +290,8 @@ public class AggressiveInlineAliasesTest extends CompilerTestCase {
   }
 
   public void testCollapsePropertiesOfClass1() {
-    test(LINE_JOINER.join(
+    test(
+    	LINE_JOINER.join(
         "/** @constructor */ var namespace = function() {};",
         "goog.inherits(namespace, Object);",
         "namespace.includeExtraParam = true;",
@@ -362,7 +364,8 @@ public class AggressiveInlineAliasesTest extends CompilerTestCase {
   }
 
   public void testDontCrashCtorAliasWithEnum() {
-    test(LINE_JOINER.join(
+    test(
+    	LINE_JOINER.join(
         "var ns = {};",
         "/** @constructor */ ns.Foo = function () {};",
         "var Bar = ns.Foo;",
@@ -535,7 +538,8 @@ public class AggressiveInlineAliasesTest extends CompilerTestCase {
   }
 
   public void testLocalAliasOfEnumWithInstanceofCheck() {
-    test(LINE_JOINER.join(
+    test(
+    	LINE_JOINER.join(
         "/** @constructor */ var Enums = function() {};",
         "/** @enum { number } */",
         "Enums.Fruit = { APPLE: 1, BANANA: 2 };",

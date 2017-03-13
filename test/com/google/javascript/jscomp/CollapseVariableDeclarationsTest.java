@@ -60,39 +60,39 @@ public final class CollapseVariableDeclarationsTest extends CompilerTestCase {
   public void testAggressiveRedeclaration() {
     test(
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"    x = 3; var y = 2;"),
+		"var x = 2; foo(x);",
+		"    x = 3; var y = 2;"),
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"/** @suppress {duplicate} */",
-    			"var x = 3,     y = 2;"));
+		"var x = 2; foo(x);",
+		"/** @suppress {duplicate} */",
+		"var x = 3,     y = 2;"));
 
     test(
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"    x = 3; x = 1; var y = 2;"),
+		"var x = 2; foo(x);",
+		"    x = 3; x = 1; var y = 2;"),
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"/** @suppress {duplicate} */",
-    			"var x = 3, x = 1,     y = 2;"));
+		"var x = 2; foo(x);",
+		"/** @suppress {duplicate} */",
+		"var x = 3, x = 1,     y = 2;"));
 
     test(
     	LINE_JOINER.join(
-    		"var x = 2; foo(x);",
-    		"    x = 3; x = 1; var y = 2; var z = 4"),
+		"var x = 2; foo(x);",
+		"    x = 3; x = 1; var y = 2; var z = 4"),
     	LINE_JOINER.join(
-    		"var x = 2; foo(x);",
-    		"/** @suppress {duplicate} */",
-    		"var x = 3, x = 1,     y = 2,     z = 4"));
+		"var x = 2; foo(x);",
+		"/** @suppress {duplicate} */",
+		"var x = 3, x = 1,     y = 2,     z = 4"));
 
     test(
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"    x = 3; x = 1; var y = 2; var z = 4; x = 5"),
+		"var x = 2; foo(x);",
+		"    x = 3; x = 1; var y = 2; var z = 4; x = 5"),
     	LINE_JOINER.join(
-    			"var x = 2; foo(x);",
-    			"/** @suppress {duplicate} */",
-    			"var x = 3, x = 1,     y = 2,     z = 4, x = 5"));
+		"var x = 2; foo(x);",
+		"/** @suppress {duplicate} */",
+		"var x = 3, x = 1,     y = 2,     z = 4, x = 5"));
   }
 
   public void testAggressiveRedeclarationInFor() {

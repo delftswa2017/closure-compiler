@@ -1228,6 +1228,8 @@ class PeepholeMinimizeConditions
         //   x ? false : true --> !x
         //   x ? true : y     --> x || y
         //   x ? y : false    --> x && y
+
+        //   Only when x is NAME, hence x does not have side effects
         //   x ? x : y        --> x || y
         Node replacement = null;
         TernaryValue trueNodeVal = NodeUtil.getPureBooleanValue(trueNode);
@@ -1250,8 +1252,10 @@ class PeepholeMinimizeConditions
           // Remove useless false case
           n.detachChildren();
           replacement = IR.and(condition, trueNode);
-        } else if (condition.isEquivalentTo(trueNode)) {
-          // Remove redundant condition  
+        } else if (!mayHaveSideEffects(condition)
+            && !mayHaveSideEffects(trueNode)
+            && condition.isEquivalentTo(trueNode)) {
+          // Remove redundant condition
           n.detachChildren();
           replacement = IR.or(trueNode, falseNode);
         }

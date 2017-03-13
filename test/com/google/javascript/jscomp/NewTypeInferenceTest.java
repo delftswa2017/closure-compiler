@@ -6194,7 +6194,7 @@ public final class NewTypeInferenceTest extends NewTypeInferenceTestBase {
         "/** @type {string} */",
         "var out;",
         "var result = apply(function(x){ out = x; return x; }, 0);"),
-        NewTypeInference.NOT_UNIQUE_INSTANTIATION);
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
 
     typeCheck(LINE_JOINER.join(
         "/** @template T */",
@@ -6293,7 +6293,7 @@ public final class NewTypeInferenceTest extends NewTypeInferenceTestBase {
         " */",
         "function f(x) {}",
         "f(function(x) { return 'asdf'; });"),
-        NewTypeInference.INVALID_ARGUMENT_TYPE);
+        NewTypeInference.RETURN_NONDECLARED_TYPE);
 
     typeCheck(LINE_JOINER.join(
         "/**",
@@ -6303,7 +6303,7 @@ public final class NewTypeInferenceTest extends NewTypeInferenceTestBase {
         " */",
         "function f(x, y) {}",
         "f(123, function(x) { var /** string */ s = x; });"),
-        NewTypeInference.NOT_UNIQUE_INSTANTIATION);
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
 
     typeCheck(LINE_JOINER.join(
         "/**",
@@ -12283,6 +12283,20 @@ public final class NewTypeInferenceTest extends NewTypeInferenceTestBase {
         "    var /** null */ n = this;",
         "  });",
         "}"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+
+    typeCheck(LINE_JOINER.join(
+        "/** @constructor */",
+        "function Foo() {",
+        "  /** @type {number} */",
+        "  this.myprop = 123;",
+        "}",
+        "/**",
+        " * @param {!Foo} x",
+        " * @param {function(!Foo, !Foo)} fun",
+        " */",
+        "function f(x, fun) { fun(x, x); }",
+        "f(new Foo, function(x) { x.myprop = 'asdf'; });"),
         NewTypeInference.MISTYPED_ASSIGN_RHS);
   }
 
@@ -19473,5 +19487,123 @@ public final class NewTypeInferenceTest extends NewTypeInferenceTestBase {
         "  return x.myprop;",
         "}"),
         NewTypeInference.NULLABLE_DEREFERENCE);
+  }
+
+  public void testGettingSignatureForCallbackFromGenericCallee() {
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @template T",
+        " * @param {T} x",
+        " * @param {function(T)} y",
+        " * @return {T}",
+        " */",
+        "function f(x, y) { return x; }",
+        "/** @const */",
+        "var c = f(123, function(x) { var /** string */ s = x; });",
+        "function g() { c; }"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+
+    // U is unknown; callback is typed function(number)
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @template T, U",
+        " * @param {T} x",
+        " * @param {U} y",
+        " * @param {function(T)} fun",
+        " */",
+        "function f(x, y, fun) {}",
+        "f(123, globalvar, function(x) { var /** null */ n = x; });"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+
+    // U is unknown; callback is typed function(?)
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @template T, U",
+        " * @param {T} x",
+        " * @param {U} y",
+        " * @param {function(U)} fun",
+        " */",
+        "function f(x, y, fun) {}",
+        "f(123, globalvar, function(x) { var /** null */ n = x; });"));
+
+    // Can't get declared type for callback during GTI. It's inferred as function(null) during NTI.
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @template T",
+        " * @param {T} x",
+        " * @param {T} y",
+        " * @param {function(T)} fun",
+        " */",
+        "function f(x, y, fun) {}",
+        "f(123, 'asdf', function(x) { var /** null */ n = x; });"),
+        NewTypeInference.NOT_UNIQUE_INSTANTIATION);
+
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @this {?IArrayLike<T>|string}",
+        " * @param {?function(T, number)} callback",
+        " * @template T",
+        " */",
+        "function myforeach(callback) {}",
+        "function f(/** !IArrayLike<number> */ a) {",
+        "  Array.prototype.forEach.call(a, function(item) {",
+        "    var /** string */ s = item;",
+        "  });",
+        "}"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+  }
+
+  public void testInferConstCallApply() {
+    typeCheck(LINE_JOINER.join(
+        "/** @constructor */",
+        "function Foo() {}",
+        "/** @return {number} */",
+        "Foo.prototype.method = function() { return 123; };",
+        "/** @const */",
+        "var c = Foo.prototype.method.call(new Foo);",
+        "function f() { var /** string */ s = c; }"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+
+    typeCheck(LINE_JOINER.join(
+        "/** @constructor */",
+        "function Foo() {}",
+        "/** @return {number} */",
+        "Foo.prototype.method = function() { return 123; };",
+        "/** @const */",
+        "var c = Foo.prototype.method.apply(new Foo);",
+        "function f() { var /** string */ s = c; }"),
+        NewTypeInference.MISTYPED_ASSIGN_RHS);
+  }
+
+  public void testTryGettingSignatureFromCalleeDontCrash() {
+    typeCheck(
+        "(123)(function() {});",
+        NewTypeInference.NOT_CALLABLE);
+  }
+
+  public void testPromoteTrueAndFalseToBooleanWhenInstantiatingGenerics() {
+    typeCheck(LINE_JOINER.join(
+        "/**",
+        " * @param {...T} var_args",
+        " * @template T",
+        " */",
+        "function x(var_args) {}",
+        "x(true, false);"));
+  }
+
+  public void testExtendWindowDontCrash() {
+    typeCheck(LINE_JOINER.join(
+        "/** @type {number} */",
+        "var globalvar;",
+        "/**",
+        " * @constructor",
+        " * @extends {Window}",
+        " */",
+        "function FakeWindow() {}",
+        "function f(/** !Window */ w) {",
+        "  return w.globalvar;",
+        "}",
+        "f(new FakeWindow);"),
+        NewTypeInference.INEXISTENT_PROPERTY);
   }
 }

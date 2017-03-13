@@ -888,39 +888,49 @@ public class Scanner {
       return true;
     }
 
-    switch (nextChar()) {
-    case '\'':
-    case '"':
-    case '`':
-    case '\\':
-    case 'b':
-    case 'f':
-    case 'n':
-    case 'r':
-    case 't':
-    case 'v':
-    case '0':
-      return true;
-    case 'x':
-      return skipHexDigit() && skipHexDigit();
-    case 'u':
-      if (peek('{')) {
-        nextChar();
-        if (peek('}')) {
-          reportError("Empty unicode escape");
-          return false;
+    char next = nextChar();
+    switch (next) {
+      case '\'':
+      case '"':
+      case '`':
+      case '\\':
+      case 'b':
+      case 'f':
+      case 'n':
+      case 'r':
+      case 't':
+      case 'v':
+      case '0':
+        return true;
+      case 'x':
+        return skipHexDigit() && skipHexDigit();
+      case 'u':
+        if (peek('{')) {
+          nextChar();
+          if (peek('}')) {
+            reportError("Empty unicode escape");
+            return false;
+          }
+          boolean allHexDigits = true;
+          while (!peek('}') && allHexDigits) {
+            allHexDigits = allHexDigits && skipHexDigit();
+          }
+          nextChar();
+          return allHexDigits;
+        } else {
+          return skipHexDigit() && skipHexDigit() && skipHexDigit() && skipHexDigit();
         }
-        boolean allHexDigits = true;
-        while (!peek('}') && allHexDigits) {
-          allHexDigits = allHexDigits && skipHexDigit();
+      default:
+        if (next == '%') {
+          // Need to special-case this because the warning string is treated as a format string.
+          reportWarning("Unnecessary escape: '\\%%' is equivalent to just '%%'");
+        } else if (next == '/') {
+          // Don't warn for '\/' (for now) since it's common in "<\/script>"
+        } else {
+          reportWarning(
+              "Unnecessary escape: '\\" + next + "' is equivalent to just '" + next + "'");
         }
-        nextChar();
-        return allHexDigits;
-      } else {
-        return skipHexDigit() && skipHexDigit() && skipHexDigit() && skipHexDigit();
-      }
-    default:
-      return true;
+        return true;
     }
   }
 

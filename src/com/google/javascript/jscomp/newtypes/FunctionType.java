@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.javascript.rhino.TypeI;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -332,7 +334,7 @@ public final class FunctionType {
       return this.commonTypes.QMARK_FUNCTION;
     }
     FunctionTypeBuilder builder = new FunctionTypeBuilder(this.commonTypes);
-    builder.addReqFormal(fromReceiverToFirstFormal());
+    builder.addReqFormal(this.receiverType == null ? this.commonTypes.UNKNOWN : this.receiverType);
     for (JSType type : this.requiredFormals) {
       builder.addReqFormal(type);
     }
@@ -357,32 +359,18 @@ public final class FunctionType {
       return instantiateGenericsWithUnknown().transformByApplyProperty();
     }
     FunctionTypeBuilder builder = new FunctionTypeBuilder(this.commonTypes);
-    builder.addReqFormal(fromReceiverToFirstFormal());
+    builder.addReqFormal(this.receiverType == null ? this.commonTypes.UNKNOWN : this.receiverType);
     JSType arrayContents;
     if (getMaxArityWithoutRestFormals() == 0 && hasRestFormals()) {
       arrayContents = getRestFormalsType();
     } else {
       arrayContents = this.commonTypes.UNKNOWN;
     }
-    builder.addOptFormal(
-        JSType.join(this.commonTypes.NULL, this.commonTypes.getIArrayLikeInstance(arrayContents)));
+    JSType varargsArray = this.commonTypes.getIArrayLikeInstance(arrayContents);
+    builder.addOptFormal(JSType.join(this.commonTypes.NULL, varargsArray));
     builder.addRetType(this.returnType);
     builder.addAbstract(this.isAbstract);
     return builder.buildFunction();
-  }
-
-  private JSType fromReceiverToFirstFormal() {
-    if (this.receiverType == null) {
-      return this.commonTypes.UNKNOWN;
-    }
-    NominalType nt = this.receiverType.getNominalTypeIfSingletonObj();
-    if (nt == null || nt.isBuiltinObject()) {
-      return this.receiverType;
-    }
-    if (nt.isGeneric()) {
-      return nt.instantiateGenerics(this.commonTypes.MAP_TO_UNKNOWN).getInstanceAsJSType();
-    }
-    return nt.getInstanceAsJSType();
   }
 
   // Should only be used during GlobalTypeInfo.
@@ -781,6 +769,17 @@ public final class FunctionType {
     return typeParameters;
   }
 
+  List<TypeI> getParameterTypes() {
+    int howmanyTypes = getMaxArityWithoutRestFormals() + (hasRestFormals() ? 1 : 0);
+    ArrayList<TypeI> types = new ArrayList<>(howmanyTypes);
+    types.addAll(this.requiredFormals);
+    types.addAll(this.optionalFormals);
+    if (hasRestFormals()) {
+      types.add(this.restFormals);
+    }
+    return types;
+  }
+
   boolean unifyWithSubtype(FunctionType other, List<String> typeParameters,
       Multimap<String, JSType> typeMultimap, SubtypeCache subSuperMap) {
     Preconditions.checkState(this.typeParameters.isEmpty(),
@@ -1077,8 +1076,12 @@ public final class FunctionType {
       return null;
     }
     for (int i = 0, size = argTypes.size(); i < size; i++) {
+      JSType argType = argTypes.get(i);
+      if (argType.isBottom()) {
+        continue;
+      }
       if (!this.getFormalType(i).unifyWithSubtype(
-          argTypes.get(i), typeParameters, typeMultimap, SubtypeCache.create())) {
+          argType, typeParameters, typeMultimap, SubtypeCache.create())) {
         return null;
       }
     }

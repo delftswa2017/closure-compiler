@@ -28,6 +28,7 @@ public final class Es6InlineTypesTest extends CompilerTestCase {
   @Override
   public void setUp() {
     setAcceptedLanguage(LanguageMode.ECMASCRIPT6_TYPED);
+    compareJsDoc = false;
   }
 
   @Override
@@ -48,7 +49,7 @@ public final class Es6InlineTypesTest extends CompilerTestCase {
   }
 
   public void testVariableDeclaration() {
-    test("/** @type {string} */ var print;", "/** @type {string} print */ var print: string;");
+    test("/** @type {string} */ var print;", "var print: string;");
   }
 
   public void testVariableDeclarationWithoutDeclaredType() throws Exception {
@@ -56,36 +57,28 @@ public final class Es6InlineTypesTest extends CompilerTestCase {
   }
 
   public void testFunctionReturnType() throws Exception {
-    test("/** @return {boolean} */ function b(){}",
-    	" /** @return {number} */ function b(): boolean {}");
+    test("/** @return {boolean} */ function b(){}", "function b(): boolean {}");
   }
 
   public void testFunctionParameterTypes() throws Exception {
     test("/** @param {number} n @param {string} s */ function t(n,s){}",
-        " /** @param {number} n @param {string} s */ function t(n: number, s: string) {}");
+        "function t(n: number, s: string) {}");
   }
 
   public void testFunctionInsideAssignment() throws Exception {
-    test(
-    	LINE_JOINER.join(
-    		"/** @param {boolean} b @return {boolean} */ ",
-            "var f = function(b){return !b};"),
-        LINE_JOINER.join(
-        	"/** @param {boolean} b @type {boolean}*/ ",
-            "var f = function(b: boolean): boolean { return !b; };"));
+    test("/** @param {boolean} b @return {boolean} */ "
+            + "var f = function(b){return !b};",
+        "var f = function(b: boolean): boolean { return !b; };");
   }
 
   public void testNestedFunctions() throws Exception {
-    test(
-    	LINE_JOINER.join(
-    		"/**@param {boolean} b*/ ",
-            "var f = function(b){var t = function(l) {}; t();};"),
-    	LINE_JOINER.join(
-    		"/**@param {boolean} b*/ var f = function(b: boolean) {",
-            "  var t = function(l) {",
-            "  };",
-            "  t();",
-            "};"));
+    test("/**@param {boolean} b*/ "
+            + "var f = function(b){var t = function(l) {}; t();};",
+            "var f = function(b: boolean) {"
+            + "  var t = function(l) {"
+            + "  };"
+            + "  t();"
+            + "};");
   }
 
   public void testUnknownType() throws Exception {
@@ -95,6 +88,6 @@ public final class Es6InlineTypesTest extends CompilerTestCase {
   // TypeScript doesn't have a representation for the Undefined type,
   // so our transpilation is lossy here.
   public void testUndefinedType() throws Exception {
-    test("/** @type {undefined} */ var n;", "/** @type {undefined} */ var n;");
+    test("/** @type {undefined} */ var n;", "var n;");
   }
 }
